@@ -19,7 +19,8 @@
       justify-content: space-around;
     }
 
-    .toolbar label, .toolbar button {
+    .toolbar label {
+      position: relative;
       display: inline-block;
       width: 200px;
       text-align: center;
@@ -32,12 +33,27 @@
       cursor: pointer;
     }
 
-    .toolbar input[type="file"] {
+    .toolbar label input[type="file"] {
       display: inline-block;
       width: 200px;
       height: 40px;
       opacity: 0;
       position: absolute;
+      left: 0;
+      top: 0;
+      cursor: pointer;
+    }
+
+    .toolbar button {
+      display: inline-block;
+      width: 200px;
+      text-align: center;
+      padding: 10px;
+      font-size: 16px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
       cursor: pointer;
     }
 
