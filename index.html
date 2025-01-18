@@ -11,18 +11,21 @@
 
     .toolbar {
       position: fixed;
-      bottom: 0;
+      top: 0;
       width: 100%;
       background: #f8f9fa;
       padding: 10px;
       display: flex;
       justify-content: space-around;
+      z-index: 1000;
+      flex-wrap: wrap;
+      box-sizing: border-box;
     }
 
     .toolbar label {
       position: relative;
       display: inline-block;
-      width: 200px;
+      width: 45%;
       text-align: center;
       padding: 10px;
       font-size: 16px;
@@ -31,12 +34,13 @@
       border: none;
       border-radius: 5px;
       cursor: pointer;
+      margin: 5px;
     }
 
     .toolbar label input[type="file"] {
       display: inline-block;
-      width: 200px;
-      height: 40px;
+      width: 100%;
+      height: 100%;
       opacity: 0;
       position: absolute;
       left: 0;
@@ -46,7 +50,7 @@
 
     .toolbar button {
       display: inline-block;
-      width: 200px;
+      width: 45%;
       text-align: center;
       padding: 10px;
       font-size: 16px;
@@ -55,6 +59,7 @@
       border: none;
       border-radius: 5px;
       cursor: pointer;
+      margin: 5px;
     }
 
     #canvas.hidden {
@@ -87,7 +92,7 @@
     let dragging = false;
 
     canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight - 100;
+    canvas.height = window.innerHeight - document.querySelector('.toolbar').offsetHeight;
 
     document.getElementById("upload").addEventListener("change", (event) => {
       const file = event.target.files[0];
