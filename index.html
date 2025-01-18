@@ -7,7 +7,6 @@
     #canvas {
       border: 1px solid #ccc;
       touch-action: none;
-      /* タッチ操作対応 */
     }
 
     .toolbar {
@@ -21,11 +20,25 @@
     }
 
     .toolbar label, .toolbar button {
-      font-size: 3em;
+      display: inline-block;
+      width: 200px;
+      text-align: center;
+      padding: 10px;
+      font-size: 16px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
     }
 
     .toolbar input[type="file"] {
-      display: none;
+      display: inline-block;
+      width: 200px;
+      height: 40px;
+      opacity: 0;
+      position: absolute;
+      cursor: pointer;
     }
 
     #canvas.hidden {
@@ -42,27 +55,24 @@
 </head>
 
 <body>
-  <input type="file" id="upload" accept="image/*">
-  <canvas id="canvas"></canvas>
   <div class="toolbar">
-    <label for="upload">画像アップロード</label>
+    <label for="upload">画像アップロード<input type="file" id="upload" accept="image/*"></label>
     <button onclick="saveCanvas()">保存</button>
   </div>
+  <canvas id="canvas"></canvas>
 
   <script>
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
     let img = new Image();
-    let scale = 1; // 縮尺
+    let scale = 1;
     let imgWidth, imgHeight;
-    let circle = { x: 100, y: 100, radius: 75 }; // 赤丸の初期位置 (1.5倍)
+    let circle = { x: 100, y: 100, radius: 75 }; // 赤丸の初期半径を1.5倍に
     let dragging = false;
 
-    // キャンバスサイズを動的に設定
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight - 100;
 
-    // 画像アップロード
     document.getElementById("upload").addEventListener("change", (event) => {
       const file = event.target.files[0];
       if (file) {
@@ -74,9 +84,7 @@
       }
     });
 
-    // 画像の読み込み
     img.onload = () => {
-      // 画像の縮尺を計算してキャンバスにフィットさせる
       const ratio = Math.min(canvas.width / img.width, canvas.height / img.height);
       imgWidth = img.width * ratio;
       imgHeight = img.height * ratio;
@@ -84,14 +92,12 @@
       drawCanvas();
     };
 
-    // キャンバスに描画
     function drawCanvas() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
       drawCircle();
     }
 
-    // 赤丸を描画
     function drawCircle() {
       ctx.beginPath();
       ctx.arc(circle.x, circle.y, circle.radius, 0, Math.PI * 2);
@@ -100,7 +106,6 @@
       ctx.stroke();
     }
 
-    // ドラッグで赤丸を移動
     canvas.addEventListener("touchstart", startDrag);
     canvas.addEventListener("touchmove", dragCircle);
     canvas.addEventListener("touchend", endDrag);
@@ -140,19 +145,15 @@
       };
     }
 
-    // キャンバスを保存して表示
     function saveCanvas() {
       const finalCanvas = document.createElement("canvas");
       const finalCtx = finalCanvas.getContext("2d");
 
-      // 元画像のサイズに合わせたキャンバスを作成
       finalCanvas.width = img.width;
       finalCanvas.height = img.height;
 
-      // 元画像を描画
       finalCtx.drawImage(img, 0, 0, img.width, img.height);
 
-      // 赤丸を描画（元画像のスケールに合わせて調整）
       const circleX = circle.x / scale;
       const circleY = circle.y / scale;
       const circleRadius = circle.radius / scale;
@@ -163,10 +164,8 @@
       finalCtx.lineWidth = 20;
       finalCtx.stroke();
 
-      // 元のキャンバスを非表示にする
       canvas.classList.add("hidden");
 
-      // JPEG画像を表示
       const dataURL = finalCanvas.toDataURL("image/jpeg", 0.8);
       const imgElement = new Image();
       imgElement.src = dataURL;
