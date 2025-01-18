@@ -92,7 +92,8 @@
     let img = new Image();
     let scale = 1;
     let imgWidth, imgHeight;
-    let circle = { x: 100, y: 100, radius: 75 }; // 赤丸の初期半径を1.5倍に
+    let circle = { x: canvas.width / 2, y: canvas.height / 2, radius: 75 }; // 赤丸の初期位置をキャンバス中心に設定
+
     let dragging = false;
 
     canvas.width = window.innerWidth;
