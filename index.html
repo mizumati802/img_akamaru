@@ -20,6 +20,10 @@
       justify-content: space-around;
     }
 
+    .toolbar label, .toolbar button {
+      font-size: 3em;
+    }
+
     .toolbar input[type="file"] {
       display: none;
     }
@@ -51,7 +55,7 @@
     let img = new Image();
     let scale = 1; // 縮尺
     let imgWidth, imgHeight;
-    let circle = { x: 100, y: 100, radius: 50 }; // 赤丸の初期位置
+    let circle = { x: 100, y: 100, radius: 75 }; // 赤丸の初期位置 (1.5倍)
     let dragging = false;
 
     // キャンバスサイズを動的に設定
