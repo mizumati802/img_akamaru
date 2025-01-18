@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>画像編集ツール</title>
+  <style>
+    #canvas {
+      border: 1px solid #ccc;
+      touch-action: none;
+    }
+
+    .toolbar {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background: #f8f9fa;
+      padding: 10px;
+      display: flex;
+      justify-content: space-around;
+    }
+
+    .toolbar input[type="file"] {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <input type="file" id="upload" accept="image/*">
+  <canvas id="canvas"></canvas>
+  <div class="toolbar">
+    <label for="upload">画像アップロード</label>
+    <button onclick="addCircle()">◯を追加</button>
+    <button onclick="saveCanvas()">保存</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    let img = new Image();
+    let scale = 1; // 縮尺
+    let imgWidth, imgHeight;
+
+    // キャンバスサイズを動的に設定
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight - 100;
+
+    // 画像アップロード
+    document.getElementById("upload").addEventListener("change", (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // 画像の読み込み
+    img.onload = () => {
+      // 画像の縮尺を計算してキャンバスにフィットさせる
+      const ratio = Math.min(canvas.width / img.width, canvas.height / img.height);
+      imgWidth = img.width * ratio;
+      imgHeight = img.height * ratio;
+      scale = ratio;
+      drawCanvas();
+    };
+
+    // キャンバスに描画
+    function drawCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+    }
+
+    // ◯を追加
+    function addCircle() {
+      if (!img.src) {
+        alert("画像をアップロードしてください");
+        return;
+      }
+      drawCanvas();
+      ctx.beginPath();
+      ctx.arc(canvas.width / 2, canvas.height / 2, 50, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
+      ctx.fill();
+    }
+
+    // キャンバスを保存
+    function saveCanvas() {
+      const finalCanvas = document.createElement("canvas");
+      const finalCtx = finalCanvas.getContext("2d");
+
+      // 元画像のサイズに合わせたキャンバスを作成
+      finalCanvas.width = img.width;
+      finalCanvas.height = img.height;
+
+      // 元画像を描画
+      finalCtx.drawImage(img, 0, 0, img.width, img.height);
+
+      // 縮尺に合わせて◯を描画
+      const circleX = (canvas.width / 2) / scale;
+      const circleY = (canvas.height / 2) / scale;
+      const circleRadius = 50 / scale;
+
+      finalCtx.beginPath();
+      finalCtx.arc(circleX, circleY, circleRadius, 0, Math.PI * 2);
+      finalCtx.fillStyle = "rgba(255, 0, 0, 0.5)";
+      finalCtx.fill();
+
+      // 保存
+      const link = document.createElement("a");
+      link.download = "edited_image.png";
+      link.href = finalCanvas.toDataURL("image/png");
+      link.click();
+    }
+  </script>
+</body>
+
+</html>
