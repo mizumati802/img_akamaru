@@ -27,6 +27,13 @@
     #canvas.hidden {
       display: none;
     }
+
+    .responsive-image {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 10px auto;
+    }
   </style>
 </head>
 
@@ -85,7 +92,7 @@
       ctx.beginPath();
       ctx.arc(circle.x, circle.y, circle.radius, 0, Math.PI * 2);
       ctx.strokeStyle = "rgba(255, 0, 0, 0.5)";
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 10;
       ctx.stroke();
     }
 
@@ -159,6 +166,7 @@
       const dataURL = finalCanvas.toDataURL("image/jpeg", 0.8);
       const imgElement = new Image();
       imgElement.src = dataURL;
+      imgElement.classList.add("responsive-image");
       document.body.appendChild(imgElement);
     }
   </script>
