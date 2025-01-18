@@ -7,6 +7,7 @@
     #canvas {
       border: 1px solid #ccc;
       touch-action: none;
+      /* タッチ操作対応 */
     }
 
     .toolbar {
@@ -30,7 +31,6 @@
   <canvas id="canvas"></canvas>
   <div class="toolbar">
     <label for="upload">画像アップロード</label>
-    <button onclick="addCircle()">◯を追加</button>
     <button onclick="saveCanvas()">保存</button>
   </div>
 
@@ -40,6 +40,8 @@
     let img = new Image();
     let scale = 1; // 縮尺
     let imgWidth, imgHeight;
+    let circle = { x: 100, y: 100, radius: 50 }; // 赤丸の初期位置
+    let dragging = false;
 
     // キャンバスサイズを動的に設定
     canvas.width = window.innerWidth;
@@ -71,22 +73,58 @@
     function drawCanvas() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+      drawCircle();
     }
 
-    // ◯を追加
-    function addCircle() {
-      if (!img.src) {
-        alert("画像をアップロードしてください");
-        return;
-      }
-      drawCanvas();
+    // 赤丸を描画
+    function drawCircle() {
       ctx.beginPath();
-      ctx.arc(canvas.width / 2, canvas.height / 2, 50, 0, Math.PI * 2);
+      ctx.arc(circle.x, circle.y, circle.radius, 0, Math.PI * 2);
       ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
       ctx.fill();
     }
 
-    // キャンバスを保存
+    // ドラッグで赤丸を移動
+    canvas.addEventListener("touchstart", startDrag);
+    canvas.addEventListener("touchmove", dragCircle);
+    canvas.addEventListener("touchend", endDrag);
+    canvas.addEventListener("mousedown", startDrag);
+    canvas.addEventListener("mousemove", dragCircle);
+    canvas.addEventListener("mouseup", endDrag);
+
+    function startDrag(e) {
+      const pos = getMousePos(e);
+      const dx = pos.x - circle.x;
+      const dy = pos.y - circle.y;
+      if (Math.sqrt(dx * dx + dy * dy) <= circle.radius) {
+        dragging = true;
+      }
+    }
+
+    function dragCircle(e) {
+      if (dragging) {
+        const pos = getMousePos(e);
+        circle.x = pos.x;
+        circle.y = pos.y;
+        drawCanvas();
+      }
+    }
+
+    function endDrag() {
+      dragging = false;
+    }
+
+    function getMousePos(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return {
+        x: clientX - rect.left,
+        y: clientY - rect.top
+      };
+    }
+
+    // キャンバスを保存して表示
     function saveCanvas() {
       const finalCanvas = document.createElement("canvas");
       const finalCtx = finalCanvas.getContext("2d");
@@ -98,21 +136,21 @@
       // 元画像を描画
       finalCtx.drawImage(img, 0, 0, img.width, img.height);
 
-      // 縮尺に合わせて◯を描画
-      const circleX = (canvas.width / 2) / scale;
-      const circleY = (canvas.height / 2) / scale;
-      const circleRadius = 50 / scale;
+      // 赤丸を描画（元画像のスケールに合わせて調整）
+      const circleX = circle.x / scale;
+      const circleY = circle.y / scale;
+      const circleRadius = circle.radius / scale;
 
       finalCtx.beginPath();
       finalCtx.arc(circleX, circleY, circleRadius, 0, Math.PI * 2);
       finalCtx.fillStyle = "rgba(255, 0, 0, 0.5)";
       finalCtx.fill();
 
-      // 保存
-      const link = document.createElement("a");
-      link.download = "edited_image.png";
-      link.href = finalCanvas.toDataURL("image/png");
-      link.click();
+      // JPEG画像を表示
+      const dataURL = finalCanvas.toDataURL("image/jpeg", 0.8);
+      const imgElement = new Image();
+      imgElement.src = dataURL;
+      document.body.appendChild(imgElement);
     }
   </script>
 </body>
