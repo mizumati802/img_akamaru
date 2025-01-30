@@ -69,7 +69,7 @@
       touch-action: none;
       margin-top: 80px; /* ツールバーの高さ分のマージン */
       width: 100%;
-      height: calc(100vh - 80px - 40px); /* ツールバーと余白を考慮した高さ */
+      height: calc(100vh - 80px - 20px); /* ツールバーと余白を考慮した高さ */
       box-sizing: border-box;
     }
 
@@ -79,6 +79,7 @@
       flex-direction: column;
       align-items: center;
       margin-top: 10px;
+      margin-bottom: 20px;
     }
 
     #saved-images img {
@@ -100,7 +101,7 @@
 
 <body>
   <div class="toolbar">
-    <label for="upload">アップ<input type="file" id="upload" accept="image/*"></label>
+    <label for="upload">アップロード<input type="file" id="upload" accept="image/*"></label>
     <button onclick="saveCanvas()">保存</button>
     <button class="clear-button" onclick="clearSavedImages()">クリア</button> <!-- クリアボタンの追加 -->
   </div>
@@ -130,7 +131,7 @@
 
     function resizeCanvas() {
       canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight - document.querySelector('.toolbar').offsetHeight;
+      canvas.height = window.innerHeight - document.querySelector('.toolbar').offsetHeight - 20; // 余白を調整
       if (img.src) {
         const ratio = Math.min(canvas.width / img.width, canvas.height / img.height);
         imgWidth = img.width * ratio;
@@ -178,14 +179,16 @@
       ctx.stroke();
     }
 
-    canvas.addEventListener("touchstart", startDrag);
-    canvas.addEventListener("touchmove", dragCircle);
-    canvas.addEventListener("touchend", endDrag);
-    canvas.addEventListener("mousedown", startDrag);
-    canvas.addEventListener("mousemove", dragCircle);
-    canvas.addEventListener("mouseup", endDrag);
+    // タッチデバイスとマウスのイベントリスナー
+    canvas.addEventListener("touchstart", startDrag, false);
+    canvas.addEventListener("touchmove", dragCircle, false);
+    canvas.addEventListener("touchend", endDrag, false);
+    canvas.addEventListener("mousedown", startDrag, false);
+    canvas.addEventListener("mousemove", dragCircle, false);
+    canvas.addEventListener("mouseup", endDrag, false);
 
     function startDrag(e) {
+      e.preventDefault();
       const pos = getMousePos(e);
       const dx = pos.x - circle.x;
       const dy = pos.y - circle.y;
@@ -196,6 +199,7 @@
 
     function dragCircle(e) {
       if (dragging) {
+        e.preventDefault();
         const pos = getMousePos(e);
         circle.x = pos.x;
         circle.y = pos.y;
@@ -203,8 +207,11 @@
       }
     }
 
-    function endDrag() {
-      dragging = false;
+    function endDrag(e) {
+      if (dragging) {
+        e.preventDefault();
+        dragging = false;
+      }
     }
 
     function getMousePos(e) {
@@ -229,26 +236,30 @@
       finalCanvas.width = img.width;
       finalCanvas.height = img.height;
 
+      // 元の画像を描画
       finalCtx.drawImage(img, 0, 0, img.width, img.height);
 
+      // 円の位置とサイズを元の画像サイズに合わせて調整
       const circleX = circle.x / scale;
       const circleY = circle.y / scale;
       const circleRadius = circle.radius / scale;
 
+      // 円を描画
       finalCtx.beginPath();
       finalCtx.arc(circleX, circleY, circleRadius, 0, Math.PI * 2);
       finalCtx.strokeStyle = "rgba(255, 0, 0, 0.5)";
       finalCtx.lineWidth = 20;
       finalCtx.stroke();
 
+      // データURLに変換
       const dataURL = finalCanvas.toDataURL("image/jpeg", 0.8);
 
-      // 保存された画像をLocalStorageに追加
+      // LocalStorageに保存
       let savedImages = JSON.parse(localStorage.getItem('savedImages')) || [];
       savedImages.push(dataURL);
       localStorage.setItem('savedImages', JSON.stringify(savedImages));
 
-      // 保存画像コンテナに追加
+      // 保存された画像を表示
       appendSavedImage(dataURL);
 
       // キャンバスをリセット
