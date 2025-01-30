@@ -4,10 +4,9 @@
 <head>
   <title>画像編集ツール</title>
   <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: Arial, sans-serif;
+    #canvas {
+      border: 1px solid #ccc;
+      touch-action: none;
     }
 
     .toolbar {
@@ -17,30 +16,27 @@
       background: #f8f9fa;
       padding: 10px;
       display: flex;
-      justify-content: space-between;
-      align-items: center;
+      justify-content: space-around;
       z-index: 1000;
       flex-wrap: wrap;
       box-sizing: border-box;
-      gap: 10px; /* ボタン間のスペースを設定 */
-    }
-
-    .toolbar label,
-    .toolbar button {
-      flex: 1; /* 各要素が均等にスペースを占める */
-      min-width: 100px; /* ボタンの最小幅を設定 */
-      text-align: center;
-      padding: 10px;
-      font-size: 18pt;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
     }
 
     .toolbar label {
+      position: relative;
+      display: inline-block;
+      width: 45%;
+      text-align: center;
+      padding: 10px;
+      font-size: 40pt;
       background-color: #007bff;
       color: white;
-      position: relative;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+      line-height: 1.5;
+      vertical-align: middle;
     }
 
     .toolbar label input[type="file"] {
@@ -55,39 +51,23 @@
     }
 
     .toolbar button {
-      background-color: #28a745;
-      color: white;
-    }
-
-    .toolbar button.clear-button {
-      background-color: #dc3545; /* クリアボタンは赤色 */
-    }
-
-    #canvas {
-      display: block;
-      border: 1px solid #ccc;
-      touch-action: none;
-      margin-top: 80px; /* ツールバーの高さ分のマージン */
-      width: 100%;
-      height: calc(100vh - 80px - 20px); /* ツールバーと余白を考慮した高さ */
-      box-sizing: border-box;
-    }
-
-    #saved-images {
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
+      display: inline-flex;
       align-items: center;
-      margin-top: 10px;
-      margin-bottom: 20px;
+      justify-content: center;
+      width: 45%;
+      text-align: center;
+      padding: 10px;
+      font-size: 40pt;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
     }
 
-    #saved-images img {
-      margin-bottom: 20px;
-      border: 2px solid #007bff;
-      border-radius: 5px;
-      max-width: 90%;
-      height: auto;
+    #canvas.hidden {
+      display: none;
     }
 
     .responsive-image {
@@ -96,14 +76,21 @@
       display: block;
       margin: 10px auto;
     }
+
+    #saved-images {
+      margin-top: calc(100vh - 60px); /* Adjust based on toolbar height */
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
   </style>
 </head>
 
 <body>
   <div class="toolbar">
-    <label for="upload">アップロード<input type="file" id="upload" accept="image/*"></label>
+    <label for="upload">画像アップロード<input type="file" id="upload" accept="image/*"></label>
     <button onclick="saveCanvas()">保存</button>
-    <button class="clear-button" onclick="clearSavedImages()">クリア</button> <!-- クリアボタンの追加 -->
   </div>
   <canvas id="canvas"></canvas>
   <div id="saved-images"></div>
@@ -117,37 +104,24 @@
     let circle = { x: canvas.width / 2, y: canvas.height / 2, radius: 75 }; // 赤丸の初期位置を中心に設定
     let dragging = false;
 
-    function handleImageLoad() {
-      const ratio = Math.min(canvas.width / img.width, canvas.height / img.height);
-      imgWidth = img.width * ratio;
-      imgHeight = img.height * ratio;
-      scale = ratio;
-      circle.x = canvas.width / 2;
-      circle.y = canvas.height / 2;
-      drawCanvas();
-    }
-
-    img.onload = handleImageLoad;
-
     function resizeCanvas() {
       canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight - document.querySelector('.toolbar').offsetHeight - 20; // 余白を調整
-      if (img.src) {
+      canvas.height = window.innerHeight - document.querySelector('.toolbar').offsetHeight;
+      if (img.width && img.height) {
         const ratio = Math.min(canvas.width / img.width, canvas.height / img.height);
         imgWidth = img.width * ratio;
         imgHeight = img.height * ratio;
         scale = ratio;
+        drawCanvas();
         circle.x = canvas.width / 2;
         circle.y = canvas.height / 2;
-        drawCanvas();
       } else {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        circle.x = canvas.width / 2;
-        circle.y = canvas.height / 2;
       }
     }
 
     window.addEventListener('resize', resizeCanvas);
+
     resizeCanvas();
 
     document.getElementById("upload").addEventListener("change", (event) => {
@@ -156,8 +130,16 @@
         const reader = new FileReader();
         reader.onload = (e) => {
           img = new Image();
-          img.onload = handleImageLoad;
           img.src = e.target.result;
+          img.onload = () => {
+            const ratio = Math.min(canvas.width / img.width, canvas.height / img.height);
+            imgWidth = img.width * ratio;
+            imgHeight = img.height * ratio;
+            scale = ratio;
+            circle.x = canvas.width / 2;
+            circle.y = canvas.height / 2;
+            drawCanvas();
+          };
         };
         reader.readAsDataURL(file);
       }
@@ -165,9 +147,7 @@
 
     function drawCanvas() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      if (img.src) {
-        ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
-      }
+      ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
       drawCircle();
     }
 
@@ -179,16 +159,14 @@
       ctx.stroke();
     }
 
-    // タッチデバイスとマウスのイベントリスナー
-    canvas.addEventListener("touchstart", startDrag, false);
-    canvas.addEventListener("touchmove", dragCircle, false);
-    canvas.addEventListener("touchend", endDrag, false);
-    canvas.addEventListener("mousedown", startDrag, false);
-    canvas.addEventListener("mousemove", dragCircle, false);
-    canvas.addEventListener("mouseup", endDrag, false);
+    canvas.addEventListener("touchstart", startDrag);
+    canvas.addEventListener("touchmove", dragCircle);
+    canvas.addEventListener("touchend", endDrag);
+    canvas.addEventListener("mousedown", startDrag);
+    canvas.addEventListener("mousemove", dragCircle);
+    canvas.addEventListener("mouseup", endDrag);
 
     function startDrag(e) {
-      e.preventDefault();
       const pos = getMousePos(e);
       const dx = pos.x - circle.x;
       const dy = pos.y - circle.y;
@@ -199,7 +177,6 @@
 
     function dragCircle(e) {
       if (dragging) {
-        e.preventDefault();
         const pos = getMousePos(e);
         circle.x = pos.x;
         circle.y = pos.y;
@@ -207,11 +184,8 @@
       }
     }
 
-    function endDrag(e) {
-      if (dragging) {
-        e.preventDefault();
-        dragging = false;
-      }
+    function endDrag() {
+      dragging = false;
     }
 
     function getMousePos(e) {
@@ -236,74 +210,34 @@
       finalCanvas.width = img.width;
       finalCanvas.height = img.height;
 
-      // 元の画像を描画
       finalCtx.drawImage(img, 0, 0, img.width, img.height);
 
-      // 円の位置とサイズを元の画像サイズに合わせて調整
       const circleX = circle.x / scale;
       const circleY = circle.y / scale;
       const circleRadius = circle.radius / scale;
 
-      // 円を描画
       finalCtx.beginPath();
       finalCtx.arc(circleX, circleY, circleRadius, 0, Math.PI * 2);
       finalCtx.strokeStyle = "rgba(255, 0, 0, 0.5)";
       finalCtx.lineWidth = 20;
       finalCtx.stroke();
 
-      // データURLに変換
       const dataURL = finalCanvas.toDataURL("image/jpeg", 0.8);
-
-      // LocalStorageに保存
-      let savedImages = JSON.parse(localStorage.getItem('savedImages')) || [];
-      savedImages.push(dataURL);
-      localStorage.setItem('savedImages', JSON.stringify(savedImages));
-
-      // 保存された画像を表示
-      appendSavedImage(dataURL);
-
-      // キャンバスをリセット
-      resetCanvas();
-    }
-
-    function appendSavedImage(dataURL) {
-      const savedImagesContainer = document.getElementById("saved-images");
       const imgElement = new Image();
       imgElement.src = dataURL;
       imgElement.classList.add("responsive-image");
-      savedImagesContainer.prepend(imgElement); // 最新の画像を上に追加
-    }
+      document.getElementById("saved-images").appendChild(imgElement);
 
-    function resetCanvas() {
-      img = new Image();
-      img.onload = handleImageLoad; // onloadハンドラーを再設定
+      // キャンバスをリセット
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      circle.x = canvas.width / 2;
-      circle.y = canvas.height / 2;
-      scale = 1;
+      img = new Image();
       imgWidth = 0;
       imgHeight = 0;
-      document.getElementById("upload").value = ""; // アップロード入力をリセット
-    }
-
-    function loadSavedImages() {
-      const savedImages = JSON.parse(localStorage.getItem('savedImages')) || [];
-      savedImages.forEach(dataURL => {
-        appendSavedImage(dataURL);
-      });
-    }
-
-    // ページロード時に保存された画像を読み込む
-    window.onload = loadSavedImages;
-
-    // クリアボタンの機能
-    function clearSavedImages() {
-      if (confirm("本当にすべての保存された画像をクリアしますか？")) {
-        localStorage.removeItem('savedImages'); // LocalStorageから削除
-        const savedImagesContainer = document.getElementById("saved-images");
-        savedImagesContainer.innerHTML = ""; // 表示されている画像を削除
-        alert("すべての保存された画像がクリアされました。");
-      }
+      scale = 1;
+      circle = { x: canvas.width / 2, y: canvas.height / 2, radius: 75 };
+      
+      // アップロード入力をリセット
+      document.getElementById("upload").value = "";
     }
   </script>
 </body>
